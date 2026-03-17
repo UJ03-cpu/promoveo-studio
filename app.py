@@ -164,6 +164,38 @@ for i, msg in enumerate(st.session_state.messages):
 
 # --- 6. THE CHAT INPUT BAR ---
 if prompt := st.chat_input("Message PromoVeo (e.g., 'Write a script for my ad...'):"):
+    if prompt := st.chat_input("Message PromoVeo..."):
+    
+    # --- 1. IMAGE ENGINE SELECTED ---
+    if selected_engine == "📸 Image (Fast)": # (Make sure this matches your exact radio button text)
+        if st.session_state["user"]["image_credits"] <= 0:
+            st.error("🚫 You are out of Image Credits! Please upgrade your plan.")
+        else:
+            # [YOUR EXISTING IMAGE GENERATION CODE GOES HERE]
+            
+            # Deduct 1 Image Credit
+            new_balance = st.session_state["user"]["image_credits"] - 1
+            supabase.table("users").update({"image_credits": new_balance}).eq("email", st.session_state["user"]["email"]).execute()
+            st.session_state["user"]["image_credits"] = new_balance
+            st.rerun()
+
+    # --- 2. VIDEO ENGINE SELECTED ---
+    elif selected_engine == "🎬 Video (Cinematic)": # (Make sure this matches your exact radio button text)
+        if st.session_state["user"]["video_credits"] <= 0:
+            st.error("🚫 You are out of Video Credits! Please upgrade your plan.")
+        else:
+            # [YOUR EXISTING VIDEO GENERATION CODE GOES HERE]
+            
+            # Deduct 1 Video Credit
+            new_balance = st.session_state["user"]["video_credits"] - 1
+            supabase.table("users").update({"video_credits": new_balance}).eq("email", st.session_state["user"]["email"]).execute()
+            st.session_state["user"]["video_credits"] = new_balance
+            st.rerun()
+            
+    # --- 3. CHAT ENGINE SELECTED ---
+    else:
+        # [YOUR EXISTING CHAT CODE GOES HERE]
+        # (We are leaving Chat free for now, so no deductions needed!)
     
     # Save and display user message
     st.session_state.messages.append({"role": "user", "content": prompt})
