@@ -4,6 +4,7 @@ import os
 import time
 from google import genai
 from google.genai import types
+from supabase import create_client, Client
 
 # --- 1. SETTINGS & AUTHENTICATION ---
 st.set_page_config(page_title="PromoVeo | Studio", page_icon="💬", layout="wide")
@@ -19,12 +20,58 @@ hide_st_style = """
 st.markdown(hide_st_style, unsafe_allow_html=True)
 
 # --- THE BOUNCER (PASSWORD LOCK) ---
-app_password = st.sidebar.text_input("🔐 Enter Access Password:", type="password")
+# --- 1. CONNECT TO THE BRAIN (SUPABASE) ---
+@st.cache_resource
+def init_supabase():
+    url = st.secrets["SUPABASE_URL"]
+    key = st.secrets["SUPABASE_KEY"]
+    return create_client(url, key)
 
-if app_password != "veDio03193524#myapp@": # You can change "founder2026" to any password you want
-    st.sidebar.warning("Please enter the correct password to unlock the studio.")
-    st.stop() # This entirely stops the rest of the code from running!
+supabase = init_supabase()
 
+# --- 2. THE FRONT DESK (LOGIN/SIGNUP) ---
+st.sidebar.title("🔐 Account Access")
+auth_mode = st.sidebar.radio("Choose action", ["Log In", "Sign Up"])
+
+email_input = st.sidebar.text_input("Email")
+password_input = st.sidebar.text_input("Password", type="password")
+
+if auth_mode == "Sign Up":
+    if st.sidebar.button("Create Free Account"):
+        # Check if user already exists
+        response = supabase.table("users").select("*").eq("email", email_input).execute()
+        if len(response.data) > 0:
+            st.sidebar.error("Email already registered. Please log in.")
+        elif email_input and password_input:
+            # Insert new user (credits and tier are auto-filled by your database defaults!)
+            new_user = {"email": email_input, "password": password_input}
+            supabase.table("users").insert(new_user).execute()
+            st.sidebar.success("Account created! Please switch to Log In.")
+        else:
+            st.sidebar.warning("Please enter an email and password.")
+            
+elif auth_mode == "Log In":
+    if st.sidebar.button("Log In"):
+        response = supabase.table("users").select("*").eq("email", email_input).eq("password", password_input).execute()
+        if len(response.data) > 0:
+            st.session_state["user"] = response.data[0] # Save user data to memory
+            st.sidebar.success("Logged in successfully!")
+            st.rerun() # Refresh the page to unlock the app
+        else:
+            st.sidebar.error("Invalid email or password.")
+
+# --- 3. THE LOCK ---
+if "user" not in st.session_state:
+    st.info("👋 Welcome to PromoVeo Studio. Please Log In or Sign Up in the sidebar to start generating.")
+    st.stop() # Stops the rest of the app from loading until they log in
+
+# --- 4. SHOW USER STATS ---
+st.sidebar.markdown("---")
+st.sidebar.markdown(f"**👤 User:** {st.session_state['user']['email']}")
+st.sidebar.markdown(f"**💎 Tier:** {st.session_state['user']['tier']}")
+st.sidebar.markdown(f"🎬 **Video Credits:** {st.session_state['user']['video_credits']}")
+st.sidebar.markdown(f"🖼️ **Image Credits:** {st.session_state['user']['image_credits']}")
+st.sidebar.markdown("---")
 # (Keep your API key setup right below this)
 api_key = st.secrets["GOOGLE_API_KEY"]
 client = genai.Client(api_key=api_key)
