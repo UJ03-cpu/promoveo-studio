@@ -245,62 +245,67 @@ if prompt := st.chat_input("Message PromoVeo (e.g., 'Write a script for my ad...
 
        # --- ENGINE 3: VIDEO ---
         elif engine == "🎬 Video (Cinematic)":
-            if not uploaded_file:
+            # 1. Check Credits First
+            if st.session_state["user"]["video_credits"] <= 0:
+                st.error("🚫 You are out of Video Credits! Please upgrade your plan.")
+                st.session_state.messages.append({"role": "assistant", "content": "🚫 You are out of Video Credits! Please upgrade."})
+            elif not uploaded_file:
                 st.warning("⚠️ Please upload a Reference Photo in the sidebar to generate a video.")
                 st.session_state.messages.append({"role": "assistant", "content": "⚠️ Please upload a Reference Photo."})
             else:
                 with st.spinner("🎬 Rendering video (takes ~60 seconds)..."):
                     try:
-                        # 1. Use the bulletproof Temp File method that the Veo API strictly requires
+                        import tempfile
+                        import time
+                        import os
+                        
+                        # Use the bulletproof Temp File method
                         with tempfile.NamedTemporaryFile(delete=False, suffix=".jpg") as temp_file:
                             temp_file.write(uploaded_file.getvalue())
                             temp_file_path = temp_file.name
 
                         input_image = types.Image.from_file(location=temp_file_path)
                         
-                        # 2. Start the video generation
+                        # Start the video generation
                         operation = client.models.generate_videos(
                             model='veo-3.1-fast-generate-preview',
                             prompt=prompt,
                             image=input_image,
                             config=types.GenerateVideosConfig(aspect_ratio="16:9", duration_seconds=4)
                         )
-
-                        # 3. Wait for it to finish
+                        
+                        # Wait for rendering to finish
                         while not operation.done:
                             time.sleep(5)
-                            operation = client.operations.get(operation=operation)
-
-                        # 4. Clean up the temp file immediately
+                            operation = client.operations.get(operation.name)
+                            
+                        # Clean up the temp file
                         os.remove(temp_file_path)
 
-                        # 5. Safely check if Google blocked the video (Safety Filters)
+                        # Check for safety filter errors
                         if operation.error:
                             error_msg = f"⚠️ AI Error (Safety Filter): {operation.error.message}"
                             st.error(error_msg)
                             st.session_state.messages.append({"role": "assistant", "content": error_msg})
                             
-                       # 6. Safely extract and download the video
+                        # Safely extract and download the video
                         elif operation.result and operation.result.generated_videos:
                             generated_video = operation.result.generated_videos[0]
                             
-                            # NEW: The Video object has a 'uri' (a download link), not a 'name'
                             if generated_video.video and hasattr(generated_video.video, 'uri'):
                                 output_path = f"promo_output_{int(time.time())}.mp4" 
                                 
-                                # Use Python's built-in downloader to fetch the massive video file
                                 import urllib.request
                                 video_uri = generated_video.video.uri
                                 
-                                # Attach your API key to the link so Google knows you have permission to download it
-                                # Note: Ensure 'api_key' is defined in your code (e.g., api_key = st.secrets["GOOGLE_API_KEY"])
+                                # Need API key for download
+                                api_key = st.secrets["GOOGLE_API_KEY"]
                                 download_url = f"{video_uri}&key={api_key}" if "?" in video_uri else f"{video_uri}?key={api_key}"
                                 
                                 urllib.request.urlretrieve(download_url, output_path)
 
                                 st.video(output_path)
                                 
-                                # Save to memory and trigger the download button we built earlier!
                                 st.session_state.messages.append({
                                     "role": "assistant", 
                                     "content": "Here is your video ad!", 
@@ -308,13 +313,21 @@ if prompt := st.chat_input("Message PromoVeo (e.g., 'Write a script for my ad...
                                 })
 
                                 # --- 💰 THE CREDIT ENFORCER (SUCCESS!) ---
-                                # Deduct 1 Video Credit only because it successfully generated
                                 new_balance = st.session_state["user"]["video_credits"] - 1
                                 supabase.table("users").update({"video_credits": new_balance}).eq("email", st.session_state["user"]["email"]).execute()
                                 st.session_state["user"]["video_credits"] = new_balance
-                                st.rerun() # Refresh the sidebar instantly
+                                st.rerun() 
 
                             else:
                                 error_msg = "⚠️ The AI processed the request but returned an empty box. Your prompt likely triggered a strict safety filter."
                                 st.error(error_msg)
                                 st.session_state.messages.append({"role": "assistant", "content": error_msg})
+                        else:
+                            error_msg = "⚠️ The AI processed the request but returned an empty box. Your prompt likely triggered a strict human/deepfake safety filter."
+                            st.error(error_msg)
+                            st.session_state.messages.append({"role": "assistant", "content": error_msg})
+
+                    except Exception as e:
+                        # THIS is the line that was missing!
+                        st.error(f"Video API Error: {e}")
+                        st.session_state.messages.append({"role": "assistant", "content": f"Video API Error: {e}"})
