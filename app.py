@@ -166,7 +166,7 @@ for i, msg in enumerate(st.session_state.messages):
 if prompt := st.chat_input("Message PromoVeo (e.g., 'Write a script for my ad...'):"):
 
     # --- 1. IMAGE ENGINE SELECTED ---
-    if selected_engine == "📸 Image (Fast)": 
+    if engine == "📸 Image (Fast)": 
         if st.session_state["user"]["image_credits"] <= 0:
             st.error("🚫 You are out of Image Credits! Please upgrade your plan.")
         else:
@@ -179,7 +179,7 @@ if prompt := st.chat_input("Message PromoVeo (e.g., 'Write a script for my ad...
             st.rerun()
 
     # --- 2. VIDEO ENGINE SELECTED ---
-    elif selected_engine == "🎬 Video (Cinematic)": 
+    elif engine == "🎬 Video (Cinematic)": 
         if st.session_state["user"]["video_credits"] <= 0:
             st.error("🚫 You are out of Video Credits! Please upgrade your plan.")
         else:
