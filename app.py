@@ -194,7 +194,7 @@ if prompt := st.chat_input("Message PromoVeo (e.g., 'Write a script for my ad...
                         
                         while not operation.done:
                             time.sleep(5)
-                            operation = client.operations.get(operation.name)
+                            operation = client.operations.get(operation=operation)
                             
                         os.remove(temp_file_path)
 
