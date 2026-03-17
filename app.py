@@ -7,6 +7,16 @@ from google.genai import types
 
 # --- 1. SETTINGS & AUTHENTICATION ---
 st.set_page_config(page_title="PromoVeo | Studio", page_icon="💬", layout="wide")
+# --- HIDE STREAMLIT BRANDING ---
+hide_st_style = """
+            <style>
+            #MainMenu {visibility: hidden;}
+            footer {visibility: hidden;}
+            header {visibility: hidden;}
+            /* Hides the top right menu and the entire header bar */
+            </style>
+            """
+st.markdown(hide_st_style, unsafe_allow_html=True)
 
 # --- THE BOUNCER (PASSWORD LOCK) ---
 app_password = st.sidebar.text_input("🔐 Enter Access Password:", type="password")
