@@ -293,6 +293,7 @@ if prompt := st.chat_input("Message PromoVeo (e.g., 'Write a script for my ad...
                                 video_uri = generated_video.video.uri
                                 
                                 # Attach your API key to the link so Google knows you have permission to download it
+                                # Note: Ensure 'api_key' is defined in your code (e.g., api_key = st.secrets["GOOGLE_API_KEY"])
                                 download_url = f"{video_uri}&key={api_key}" if "?" in video_uri else f"{video_uri}?key={api_key}"
                                 
                                 urllib.request.urlretrieve(download_url, output_path)
@@ -305,16 +306,15 @@ if prompt := st.chat_input("Message PromoVeo (e.g., 'Write a script for my ad...
                                     "content": "Here is your video ad!", 
                                     "video": output_path
                                 })
+
+                                # --- 💰 THE CREDIT ENFORCER (SUCCESS!) ---
+                                # Deduct 1 Video Credit only because it successfully generated
+                                new_balance = st.session_state["user"]["video_credits"] - 1
+                                supabase.table("users").update({"video_credits": new_balance}).eq("email", st.session_state["user"]["email"]).execute()
+                                st.session_state["user"]["video_credits"] = new_balance
+                                st.rerun() # Refresh the sidebar instantly
+
                             else:
                                 error_msg = "⚠️ The AI processed the request but returned an empty box. Your prompt likely triggered a strict safety filter."
                                 st.error(error_msg)
                                 st.session_state.messages.append({"role": "assistant", "content": error_msg})
-                        # 7. Catch-all for silent failures
-                        else:
-                            error_msg = "⚠️ The AI processed the request but returned an empty box. Your prompt likely triggered a strict human/deepfake safety filter."
-                            st.error(error_msg)
-                            st.session_state.messages.append({"role": "assistant", "content": error_msg})
-
-                    except Exception as e:
-                        st.error(f"Video API Error: {e}")
-                        st.session_state.messages.append({"role": "assistant", "content": f"Video API Error: {e}"})
