@@ -95,34 +95,46 @@ st.sidebar.markdown("---")
 api_key = st.secrets["GOOGLE_API_KEY"]
 client = genai.Client(api_key=api_key)
 
-# --- 2. CLEAN UI CSS ---
+# --- 2. MOBILE-OPTIMIZED CLEAN UI CSS ---
 st.markdown("""
 <style>
-    /* Center the app and give it breathing room */
+    /* 1. Base Desktop Styling (Mac) */
     .block-container { 
         padding-top: 2rem !important; 
-        padding-bottom: 5rem !important; 
+        padding-bottom: 6rem !important; 
         max-width: 900px !important; 
     }
-    
-    /* Gently round the bottom chat input box */
-    [data-testid="stChatInput"] { 
-        border-radius: 20px !important; 
-    }
-    
-    /* Style the User's message bubble (soft grey background) */
+    [data-testid="stChatInput"] { border-radius: 20px !important; }
     [data-testid="stChatMessage"]:nth-child(odd) { 
         background-color: rgba(150, 150, 150, 0.1); 
         border-radius: 15px; 
         padding: 10px 20px; 
         margin-bottom: 10px; 
     }
-    
-    /* Style the AI's message bubble (clean and transparent) */
     [data-testid="stChatMessage"]:nth-child(even) { 
         background-color: transparent; 
         padding: 10px 20px; 
         margin-bottom: 10px; 
+    }
+
+    /* 2. iPhone / Mobile Responsiveness Fix */
+    @media (max-width: 768px) {
+        .block-container { 
+            padding-top: 1rem !important; 
+            /* Extra padding at the bottom so the iOS Safari URL bar doesn't hide the chat input */
+            padding-bottom: 8rem !important; 
+            padding-left: 0.5rem !important;
+            padding-right: 0.5rem !important;
+        }
+        
+        /* Make chat bubbles slightly tighter so text doesn't squish */
+        [data-testid="stChatMessage"]:nth-child(odd) { 
+            padding: 12px 15px !important; 
+            border-radius: 12px;
+        }
+        [data-testid="stChatMessage"]:nth-child(even) { 
+            padding: 10px 10px !important; 
+        }
     }
 </style>
 """, unsafe_allow_html=True)
