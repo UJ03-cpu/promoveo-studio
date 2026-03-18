@@ -11,16 +11,15 @@ import json
 # --- 1. SETTINGS & AUTHENTICATION ---
 st.set_page_config(page_title="PromoVeo | Studio", page_icon="💬", layout="wide")
 
-# --- HIDE STREAMLIT BRANDING ---
+# --- HIDE STREAMLIT BRANDING (BUT KEEP THE MOBILE MENU) ---
 hide_st_style = """
             <style>
             #MainMenu {visibility: hidden;}
             footer {visibility: hidden;}
-            header {visibility: hidden;}
+            /* Removed the hidden header so the ☰ menu appears on iPhone! */
             </style>
             """
 st.markdown(hide_st_style, unsafe_allow_html=True)
-
 # --- CONNECT TO THE BRAIN (SUPABASE) ---
 @st.cache_resource
 def init_supabase():
