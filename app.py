@@ -62,12 +62,30 @@ if "user" not in st.session_state:
     st.info("👋 Welcome to PromoVeo Studio. Please Log In or Sign Up in the sidebar to start generating.")
     st.stop() 
 
-# --- SHOW USER STATS ---
+# --- SHOW USER STATS & ACTIONS ---
 st.sidebar.markdown("---")
 st.sidebar.markdown(f"**👤 User:** {st.session_state['user']['email']}")
 st.sidebar.markdown(f"**💎 Tier:** {st.session_state['user']['tier']}")
 st.sidebar.markdown(f"🎬 **Video Credits:** {st.session_state['user']['video_credits']}")
 st.sidebar.markdown(f"🖼️ **Image Credits:** {st.session_state['user']['image_credits']}")
+
+# --- NEW: LOGOUT BUTTON ---
+if st.sidebar.button("🚪 Log Out", use_container_width=True):
+    # Delete user from memory and reset the chat
+    del st.session_state["user"]
+    st.session_state.messages = [{"role": "assistant", "content": "Welcome to PromoVeo Studio. 🎬\n\nSelect your engine in the sidebar. We can chat, generate images, or render cinematic videos!"}]
+    st.rerun() # Refresh to lock the app
+
+# --- NEW: SAVE CHAT BUTTON ---
+# Converts the current chat memory into a downloadable text file
+chat_text = "\n\n".join([f"{msg['role'].upper()}:\n{msg['content']}" for msg in st.session_state.messages if "content" in msg])
+st.sidebar.download_button(
+    label="💾 Download Chat History",
+    data=chat_text,
+    file_name="promoveo_chat_history.txt",
+    mime="text/plain",
+    use_container_width=True
+)
 st.sidebar.markdown("---")
 
 # Setup Google AI
