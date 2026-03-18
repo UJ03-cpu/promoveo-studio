@@ -96,6 +96,12 @@ api_key = st.secrets["GOOGLE_API_KEY"]
 client = genai.Client(api_key=api_key)
 
 # --- 2. MOBILE-OPTIMIZED CLEAN UI CSS ---
+# --- 2. MOBILE-OPTIMIZED CLEAN UI CSS (v1.0.1) ---
+st.markdown(f"""
+<style>
+    /* ... (rest of your CSS code here) ... */
+</style>
+""", unsafe_allow_html=True)
 st.markdown("""
 <style>
     /* 1. Base Desktop Styling (Mac) */
