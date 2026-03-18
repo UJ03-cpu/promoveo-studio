@@ -74,102 +74,37 @@ st.sidebar.markdown("---")
 api_key = st.secrets["GOOGLE_API_KEY"]
 client = genai.Client(api_key=api_key)
 
-# --- 2. PREMIUM CSS INJECTION (STUNNING DARK THEME) ---
+# --- 2. CLEAN UI CSS ---
 st.markdown("""
 <style>
-    /* 1. Global Deep Dark Background */
-    .stApp, html, body, [class*="css"] {
-        background-color: #131314 !important; /* Authentic Gemini Black */
-        color: #e3e3e3 !important;
-        font-family: 'Google Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
-    }
-
-    /* 2. Main Canvas Spacing */
-    .block-container {
-        padding-top: 2rem !important;
-        padding-bottom: 6rem !important; 
-        max-width: 850px !important; 
-    }
-
-    /* 3. The Sidebar */
-    [data-testid="stSidebar"] {
-        background-color: #1e1f20 !important;
-        border-right: 1px solid rgba(255,255,255,0.05) !important;
-    }
-    [data-testid="stSidebar"] * {
-        color: #e3e3e3 !important;
-    }
-
-    /* 4. FIX: The Stark White File Uploader Box */
-    [data-testid="stFileUploadDropzone"] {
-        background-color: #131314 !important;
-        border: 1px dashed rgba(255, 255, 255, 0.2) !important;
-        border-radius: 15px !important;
-    }
-    [data-testid="stFileUploadDropzone"] * {
-        color: #a0a0a0 !important;
-    }
-
-    /* 5. FIX: The Massive White Bar at the Bottom */
-    [data-testid="stBottom"] > div, [data-testid="stBottomBlock"] {
-        background-color: #131314 !important; 
-        border-top: none !important;
-    }
-
-    /* 6. The Floating Chat Input Box */
-    [data-testid="stChatInput"] {
-        background-color: #1e1f20 !important;
-        border-radius: 30px !important;
-        border: 1px solid rgba(255, 255, 255, 0.1) !important;
-        box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.5) !important;
-        padding: 5px 15px !important;
-    }
-    [data-testid="stChatInput"] textarea {
-        color: #ffffff !important;
-        background-color: transparent !important;
-    }
-    [data-testid="stChatInput"]:focus-within {
-        border: 1px solid rgba(255, 255, 255, 0.3) !important;
-    }
-
-    /* 7. Chat Bubbles */
-    [data-testid="stChatMessage"]:nth-child(even) {
-        background-color: transparent !important;
-        border: none !important;
-        padding: 10px 0 !important;
-        margin-bottom: 10px;
-    }
-    [data-testid="stChatMessage"]:nth-child(odd) {
-        background-color: #1e1f20 !important;
-        border-radius: 20px !important;
-        padding: 15px 25px !important;
-        border: 1px solid rgba(255, 255, 255, 0.05) !important;
-        margin-bottom: 1rem;
-    }
-    [data-testid="stChatMessage"]:nth-child(odd) * {
-        color: white !important;
-    }
-
-    /* 8. Hide default avatars */
-    .stChatMessageAvatar {
-        display: none !important; 
+    /* Center the app and give it breathing room */
+    .block-container { 
+        padding-top: 2rem !important; 
+        padding-bottom: 5rem !important; 
+        max-width: 900px !important; 
     }
     
-    /* 9. Premium Button Styling */
-    .stButton > button {
-        background-color: #1e1f20 !important;
-        color: white !important;
-        border: 1px solid rgba(255, 255, 255, 0.2) !important;
-        border-radius: 10px !important;
-        transition: all 0.3s;
+    /* Gently round the bottom chat input box */
+    [data-testid="stChatInput"] { 
+        border-radius: 20px !important; 
     }
-    .stButton > button:hover {
-        border-color: #ffffff !important;
-        background-color: #2a2b2d !important;
+    
+    /* Style the User's message bubble (soft grey background) */
+    [data-testid="stChatMessage"]:nth-child(odd) { 
+        background-color: rgba(150, 150, 150, 0.1); 
+        border-radius: 15px; 
+        padding: 10px 20px; 
+        margin-bottom: 10px; 
+    }
+    
+    /* Style the AI's message bubble (clean and transparent) */
+    [data-testid="stChatMessage"]:nth-child(even) { 
+        background-color: transparent; 
+        padding: 10px 20px; 
+        margin-bottom: 10px; 
     }
 </style>
 """, unsafe_allow_html=True)
-
 # --- 3. APP MEMORY (SESSION STATE) ---
 if "messages" not in st.session_state:
     st.session_state.messages = [
