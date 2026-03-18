@@ -11,23 +11,17 @@ import json
 # --- 1. SETTINGS & AUTHENTICATION ---
 st.set_page_config(page_title="PromoVeo | Studio", page_icon="💬", layout="wide")
 
-# --- HIDE STREAMLIT BRANDING (THE SURGEON METHOD) ---
+# --- HIDE STREAMLIT BRANDING (THE FEATHER-TOUCH METHOD) ---
 hide_st_style = """
             <style>
-            /* 1. Hide the Streamlit "Deploy" button specifically */
+            /* 1. Hide the Deploy button specifically */
             .stAppDeployButton {display: none !important;}
             
             /* 2. Hide the 3-dots Main Menu */
             #MainMenu {display: none !important;}
             
-            /* 3. Hide the top colored decoration line */
+            /* 3. Hide the colored decoration line at the top */
             [data-testid="stDecoration"] {display: none !important;}
-            
-            /* 4. Hide the GitHub/Toolbar cluster, but keep the header intact */
-            [data-testid="stToolbar"] {display: none !important;}
-            
-            /* 5. CRITICAL: Ensure the header area is transparent but active so the ☰ button works! */
-            [data-testid="stHeader"] {background: transparent !important;}
             </style>
             """
 st.markdown(hide_st_style, unsafe_allow_html=True)
