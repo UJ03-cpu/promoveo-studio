@@ -74,99 +74,78 @@ st.sidebar.markdown("---")
 api_key = st.secrets["GOOGLE_API_KEY"]
 client = genai.Client(api_key=api_key)
 
-# --- 2. PREMIUM CSS INJECTION (APPLE CUPERTINO AESTHETIC) ---
+# --- 2. PREMIUM CSS INJECTION (GEMINI DARK THEME) ---
 st.markdown("""
 <style>
-    /* 1. The Native Apple Font (San Francisco) */
-    html, body, [class*="css"] {
-        font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
-        -webkit-font-smoothing: antialiased;
+    /* 1. Global Deep Dark Background & Google Font */
+    .stApp, html, body, [class*="css"] {
+        background-color: #131314 !important; /* Authentic Gemini Black */
+        color: #e3e3e3 !important;
+        font-family: 'Google Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
     }
 
-    /* 2. Clean up the main canvas space */
+    /* 2. Main Canvas Spacing */
     .block-container {
         padding-top: 2rem !important;
-        padding-bottom: 8rem !important; 
-        max-width: 800px !important; 
+        padding-bottom: 6rem !important; 
+        max-width: 850px !important; 
     }
 
-    /* 3. macOS Frosted Glass Sidebar */
+    /* 3. The Sidebar (Slightly lighter dark grey) */
     [data-testid="stSidebar"] {
-        background-color: rgba(255, 255, 255, 0.4) !important;
-        backdrop-filter: blur(20px) !important;
-        -webkit-backdrop-filter: blur(20px) !important;
-        border-right: 1px solid rgba(0,0,0,0.05) !important;
+        background-color: #1e1f20 !important;
+        border-right: 1px solid rgba(255,255,255,0.05) !important;
+    }
+    
+    /* Make sidebar text white */
+    [data-testid="stSidebar"] * {
+        color: #e3e3e3 !important;
     }
 
-    /* 4. iOS Floating Chat Input Box */
+    /* 4. The Floating Chat Input Box */
     [data-testid="stChatInput"] {
-        background-color: rgba(255, 255, 255, 0.6) !important;
-        backdrop-filter: blur(15px) !important;
-        -webkit-backdrop-filter: blur(15px) !important;
+        background-color: #1e1f20 !important;
         border-radius: 30px !important;
-        border: 1px solid rgba(0, 0, 0, 0.08) !important;
-        box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.05) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.2) !important;
         padding-left: 10px !important;
-        transition: all 0.2s ease-in-out;
     }
     
-    [data-testid="stChatInput"]:focus-within {
-        border: 1px solid rgba(0, 0, 0, 0.2) !important;
-        box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.1) !important;
+    /* Make the text they type white */
+    [data-testid="stChatInput"] textarea {
+        color: #ffffff !important;
     }
 
-    /* 5. iMessage User Bubble (Blue) */
-    [data-testid="stChatMessage"]:nth-child(odd) {
-        background-color: #007AFF !important; /* Authentic Apple iMessage Blue */
-        color: white !important;
-        border-radius: 20px 20px 4px 20px !important; /* iMessage tail effect */
-        padding: 12px 20px !important;
+    /* Glowing border when typing */
+    [data-testid="stChatInput"]:focus-within {
+        border: 1px solid rgba(255, 255, 255, 0.3) !important;
+    }
+
+    /* 5. AI Message Bubble (Transparent, like Gemini) */
+    [data-testid="stChatMessage"]:nth-child(even) {
+        background-color: transparent !important;
         border: none !important;
-        margin-bottom: 12px;
-        max-width: 80%;
-        margin-left: auto; /* Aligns user message to the right */
-        box-shadow: 0px 2px 5px rgba(0,0,0,0.05);
+        padding: 10px 0 !important;
+        margin-bottom: 10px;
+    }
+
+    /* 6. User Message Bubble (Soft dark grey pill) */
+    [data-testid="stChatMessage"]:nth-child(odd) {
+        background-color: #1e1f20 !important;
+        border-radius: 20px !important;
+        padding: 15px 25px !important;
+        border: none !important;
+        margin-bottom: 1rem;
     }
     
-    /* Make user text white */
+    /* Ensure user text stays white */
     [data-testid="stChatMessage"]:nth-child(odd) * {
         color: white !important;
     }
 
-    /* 6. iMessage Assistant Bubble (Grey) */
-    [data-testid="stChatMessage"]:nth-child(even) {
-        background-color: #E9E9EB !important; /* Authentic Apple Light Grey */
-        color: black !important;
-        border-radius: 20px 20px 20px 4px !important; /* iMessage tail effect */
-        padding: 12px 20px !important;
-        border: none !important;
-        margin-bottom: 12px;
-        max-width: 85%;
-        margin-right: auto; /* Aligns AI message to the left */
-    }
-
-    /* 7. Hide default avatars to look like pure text messages */
+    /* 7. Hide default avatars for a cleaner look */
     .stChatMessageAvatar {
         display: none !important; 
-    }
-
-    /* --- DARK MODE SUPPORT (Like macOS Dark Theme) --- */
-    @media (prefers-color-scheme: dark) {
-        [data-testid="stSidebar"] {
-            background-color: rgba(30, 30, 30, 0.5) !important;
-            border-right: 1px solid rgba(255,255,255,0.05) !important;
-        }
-        [data-testid="stChatInput"] {
-            background-color: rgba(40, 40, 40, 0.6) !important;
-            border: 1px solid rgba(255, 255, 255, 0.1) !important;
-        }
-        [data-testid="stChatMessage"]:nth-child(even) {
-            background-color: #262628 !important; /* Authentic Apple Dark Grey */
-            color: #FFFFFF !important;
-        }
-        [data-testid="stChatMessage"]:nth-child(even) * {
-            color: #FFFFFF !important;
-        }
     }
 </style>
 """, unsafe_allow_html=True)
