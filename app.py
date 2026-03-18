@@ -9,22 +9,9 @@ import uuid
 import json
 
 # --- 1. SETTINGS & AUTHENTICATION ---
-st.set_page_config(page_title="PromoVeo | Studio", page_icon="💬", layout="wide")
-
+st.set_page_config(page_title="PromoVeo | Studio", page_icon="🎬", layout="wide", initial_sidebar_state="expanded")
 # --- HIDE STREAMLIT BRANDING (THE GHOST METHOD) ---
-hide_st_style = """
-            <style>
-            /* 1. Hide the colored decoration line at the top */
-            [data-testid="stDecoration"] {display: none !important;}
-            
-            /* 2. Make the entire right-side toolbar completely transparent/invisible! */
-            [data-testid="stToolbar"] {visibility: hidden !important;}
-            
-            /* 3. Explicitly force the mobile menu toggle to STAY VISIBLE so you don't get locked out! */
-            [data-testid="collapsedControl"] {visibility: visible !important;}
-            </style>
-            """
-st.markdown(hide_st_style, unsafe_allow_html=True)
+
 @st.cache_resource
 def init_supabase():
     url = st.secrets["SUPABASE_URL"]
