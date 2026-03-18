@@ -238,10 +238,13 @@ if prompt := st.chat_input("Message PromoVeo (e.g., 'Write a script for my ad...
                     response = client.models.generate_content(model='gemini-2.5-flash', contents=prompt)
                     st.markdown(response.text)
                     st.session_state.messages.append({"role": "assistant", "content": response.text})
+
+                    save_chat_to_cloud(prompt) # SAVE TO DATABASE
+                    st.rerun() # <--- ADD THIS LINE! Forces the sidebar to update instantly!
+
                 except Exception as e:
                     st.error(f"Chat API Error: {e}")
                     st.session_state.messages.append({"role": "assistant", "content": f"Error: {e}"})
-                    save_chat_to_cloud(prompt)
         # --- ENGINE 2: IMAGE ---
         elif engine == "📸 Image (Fast)":
             if st.session_state["user"]["image_credits"] <= 0:
