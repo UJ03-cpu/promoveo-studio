@@ -137,7 +137,7 @@ def get_clean_messages_for_db():
     clean_msgs = []
     for msg in st.session_state.messages:
         clean_msg = {"role": msg["role"], "content": msg["content"]}
-        # If there is a cloud link, save it!
+        # Catch the image and video URLs!
         if "image_url" in msg:
             clean_msg["image_url"] = msg["image_url"]
         if "video_url" in msg:
@@ -213,7 +213,7 @@ for i, msg in enumerate(st.session_state.messages):
         # Draw Image from Cloud
         if "image_url" in msg:
             st.image(msg["image_url"])
-            st.markdown(f"[⬇️ Download Image (Right-Click & Save)]({msg['image_url']})")
+            st.markdown(f"[⬇️ Download Image]({msg['image_url']})")
             
         # Draw Video from Cloud
         if "video_url" in msg:
@@ -261,9 +261,7 @@ if prompt := st.chat_input("Message PromoVeo (e.g., 'Write a script for my ad...
                         for part in result.parts:
                             if part.inline_data:
                                 img_bytes = part.inline_data.data
-                                st.image(img_bytes, use_container_width=True)
-                                img_bytes = part.inline_data.data
-                                
+                                st.image(img_bytes, use_container_width=True)                                
                                 # --- UPLOAD TO SUPABASE CLOUD ---
                                 file_name = f"image_{uuid.uuid4().hex}.png"
                                 supabase.storage.from_("promoveo_assets").upload(file=img_bytes, path=file_name, file_options={"content-type": "image/png"})
@@ -271,7 +269,7 @@ if prompt := st.chat_input("Message PromoVeo (e.g., 'Write a script for my ad...
                                 
                                 # Save URL to memory and display
                                 st.session_state.messages.append({"role": "assistant", "content": "Here is your generated image!", "image_url": public_url})
-                                st.image(public_url, use_container_width=True)
+                                
                                 
                         save_chat_to_cloud(prompt) # SAVE TO DATABASE
                                 
