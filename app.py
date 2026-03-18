@@ -11,16 +11,18 @@ import json
 # --- 1. SETTINGS & AUTHENTICATION ---
 st.set_page_config(page_title="PromoVeo | Studio", page_icon="💬", layout="wide")
 
-# --- HIDE STREAMLIT BRANDING (BUT KEEP THE MOBILE MENU) ---
+# --- HIDE STREAMLIT BRANDING (THE SNIPER METHOD) ---
 hide_st_style = """
             <style>
             #MainMenu {visibility: hidden;}
             footer {visibility: hidden;}
-            /* Removed the hidden header so the ☰ menu appears on iPhone! */
+            /* Hide the colored line at the top */
+            [data-testid="stDecoration"] {display: none !important;}
+            /* Hide the GitHub/Deploy icons on the right, but keep the ☰ menu on the left! */
+            [data-testid="stToolbar"] {visibility: hidden !important; display: none !important;}
             </style>
             """
 st.markdown(hide_st_style, unsafe_allow_html=True)
-# --- CONNECT TO THE BRAIN (SUPABASE) ---
 @st.cache_resource
 def init_supabase():
     url = st.secrets["SUPABASE_URL"]
