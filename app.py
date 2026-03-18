@@ -11,17 +11,17 @@ import json
 # --- 1. SETTINGS & AUTHENTICATION ---
 st.set_page_config(page_title="PromoVeo | Studio", page_icon="💬", layout="wide")
 
-# --- HIDE STREAMLIT BRANDING (THE FEATHER-TOUCH METHOD) ---
+# --- HIDE STREAMLIT BRANDING (THE GHOST METHOD) ---
 hide_st_style = """
             <style>
-            /* 1. Hide the Deploy button specifically */
-            .stAppDeployButton {display: none !important;}
-            
-            /* 2. Hide the 3-dots Main Menu */
-            #MainMenu {display: none !important;}
-            
-            /* 3. Hide the colored decoration line at the top */
+            /* 1. Hide the colored decoration line at the top */
             [data-testid="stDecoration"] {display: none !important;}
+            
+            /* 2. Make the entire right-side toolbar completely transparent/invisible! */
+            [data-testid="stToolbar"] {visibility: hidden !important;}
+            
+            /* 3. Explicitly force the mobile menu toggle to STAY VISIBLE so you don't get locked out! */
+            [data-testid="collapsedControl"] {visibility: visible !important;}
             </style>
             """
 st.markdown(hide_st_style, unsafe_allow_html=True)
