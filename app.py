@@ -74,13 +74,73 @@ st.sidebar.markdown("---")
 api_key = st.secrets["GOOGLE_API_KEY"]
 client = genai.Client(api_key=api_key)
 
-# --- 2. PREMIUM CSS INJECTION ---
+# --- 2. PREMIUM CSS INJECTION (GEMINI AESTHETIC) ---
 st.markdown("""
 <style>
-    .block-container { padding-top: 2rem !important; padding-bottom: 5rem !important; max-width: 900px !important; }
-    [data-testid="stChatInput"] { border-radius: 25px !important; border: 1px solid #6366F1 !important; box-shadow: 0px 4px 15px rgba(99, 102, 241, 0.15) !important; }
-    [data-testid="stChatMessage"]:nth-child(odd) { background-color: rgba(99, 102, 241, 0.05); border-radius: 15px; padding: 10px 20px; margin-bottom: 10px; border-left: 3px solid #6366F1; }
-    [data-testid="stChatMessage"]:nth-child(even) { background-color: transparent; padding: 10px 20px; margin-bottom: 10px; }
+    /* 1. Base Font & Layout */
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+    html, body, [class*="css"]  {
+        font-family: 'Inter', sans-serif;
+    }
+    
+    /* Center the chat and give it breathing room */
+    .block-container {
+        padding-top: 2rem !important;
+        padding-bottom: 8rem !important; /* Space for floating input */
+        max-width: 850px !important; 
+    }
+
+    /* 2. The Floating Chat Input (Gemini Style) */
+    [data-testid="stChatInput"] {
+        bottom: 2rem;
+        border-radius: 30px !important;
+        background-color: transparent !important;
+        border: 1px solid rgba(150, 150, 150, 0.2) !important;
+        box-shadow: 0px 8px 24px rgba(0, 0, 0, 0.06) !important;
+        padding-left: 10px !important;
+        transition: all 0.3s ease;
+    }
+    
+    /* Glowing shadow when typing */
+    [data-testid="stChatInput"]:focus-within {
+        border: 1px solid #1A73E8 !important; /* Google Blue */
+        box-shadow: 0px 8px 24px rgba(26, 115, 232, 0.15) !important;
+    }
+
+    /* 3. User Message Bubble (Like a text message) */
+    [data-testid="stChatMessage"]:nth-child(odd) {
+        background-color: #F0F4F9 !important; /* Soft Google Grey/Blue */
+        border-radius: 20px !important;
+        padding: 15px 25px !important;
+        border: none !important;
+        margin-bottom: 1rem;
+    }
+    
+    /* Support for Dark Mode users */
+    @media (prefers-color-scheme: dark) {
+        [data-testid="stChatMessage"]:nth-child(odd) {
+            background-color: #1E1F22 !important;
+        }
+    }
+
+    /* 4. Assistant Message Bubble (Clean and transparent) */
+    [data-testid="stChatMessage"]:nth-child(even) {
+        background-color: transparent !important;
+        padding: 15px 10px !important;
+        border: none !important;
+        margin-bottom: 1rem;
+    }
+
+    /* 5. Clean up the Sidebar */
+    [data-testid="stSidebar"] {
+        border-right: 1px solid rgba(150, 150, 150, 0.1) !important;
+        box-shadow: 2px 0px 10px rgba(0,0,0,0.02);
+    }
+    
+    /* Hide the default generic Streamlit avatars */
+    .stChatMessageAvatar {
+        display: none !important; 
+    }
 </style>
 """, unsafe_allow_html=True)
 
