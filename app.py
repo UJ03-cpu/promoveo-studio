@@ -6,6 +6,7 @@ from google import genai
 from google.genai import types
 from supabase import create_client, Client
 import uuid
+import json
 
 # --- 1. SETTINGS & AUTHENTICATION ---
 st.set_page_config(page_title="PromoVeo | Studio", page_icon="💬", layout="wide")
@@ -143,20 +144,32 @@ def get_clean_messages_for_db():
             clean_msg["video_url"] = msg["video_url"]
         clean_msgs.append(clean_msg)
     return clean_msgs
-# HELPER FUNCTION: Save current chat to Supabase
+# HELPER FUNCTION: Save current chat to Supabase (with Loud Debugger)
 def save_chat_to_cloud(user_prompt):
-    if st.session_state["current_chat_id"] is None:
-        title = user_prompt[:25] + "..." if len(user_prompt) > 25 else user_prompt
-        new_chat = {
-            "user_email": st.session_state["user"]["email"],
-            "title": title,
-            "messages": get_clean_messages_for_db()
-        }
-        res = supabase.table("conversations").insert(new_chat).execute()
-        if res.data:
-            st.session_state["current_chat_id"] = res.data[0]["id"]
-    else:
-        supabase.table("conversations").update({"messages": get_clean_messages_for_db()}).eq("id", st.session_state["current_chat_id"]).execute()
+    try:
+        # Grab the clean messages
+        clean_msgs = get_clean_messages_for_db()
+        
+        if st.session_state["current_chat_id"] is None:
+            # Create a brand new chat
+            title = user_prompt[:25] + "..." if len(user_prompt) > 25 else user_prompt
+            new_chat = {
+                "user_email": st.session_state["user"]["email"],
+                "title": title,
+                "messages": clean_msgs # Supabase SDK usually handles this, but let's be safe
+            }
+            res = supabase.table("conversations").insert(new_chat).execute()
+            
+            # Save the new database ID to memory
+            if res.data:
+                st.session_state["current_chat_id"] = res.data[0]["id"]
+        else:
+            # Update the existing chat
+            supabase.table("conversations").update({"messages": clean_msgs}).eq("id", st.session_state["current_chat_id"]).execute()
+            
+    except Exception as e:
+        # THE LOUD DEBUGGER: If it fails silently, force it to show us why!
+        st.error(f"🚨 Cloud Save Error: {e}")
 
 # --- 4. THE SIDEBAR ---
 with st.sidebar:
