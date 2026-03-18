@@ -125,9 +125,31 @@ st.markdown("""
 """, unsafe_allow_html=True)
 # --- 3. APP MEMORY (SESSION STATE) ---
 if "messages" not in st.session_state:
-    st.session_state.messages = [
-        {"role": "assistant", "content": "Welcome to PromoVeo Studio. 🎬\n\nSelect your engine in the sidebar. We can chat, generate images, or render cinematic videos!"}
-    ]
+    st.session_state.messages = [{"role": "assistant", "content": "Welcome to PromoVeo Studio. 🎬\n\nSelect your engine in the sidebar. We can chat, generate images, or render cinematic videos!"}]
+if "current_chat_id" not in st.session_state:
+    st.session_state["current_chat_id"] = None
+
+# HELPER FUNCTION: Safely strip massive files before saving to cloud
+def get_clean_messages_for_db():
+    clean_msgs = []
+    for msg in st.session_state.messages:
+        clean_msgs.append({"role": msg["role"], "content": msg["content"]})
+    return clean_msgs
+
+# HELPER FUNCTION: Save current chat to Supabase
+def save_chat_to_cloud(user_prompt):
+    if st.session_state["current_chat_id"] is None:
+        title = user_prompt[:25] + "..." if len(user_prompt) > 25 else user_prompt
+        new_chat = {
+            "user_email": st.session_state["user"]["email"],
+            "title": title,
+            "messages": get_clean_messages_for_db()
+        }
+        res = supabase.table("conversations").insert(new_chat).execute()
+        if res.data:
+            st.session_state["current_chat_id"] = res.data[0]["id"]
+    else:
+        supabase.table("conversations").update({"messages": get_clean_messages_for_db()}).eq("id", st.session_state["current_chat_id"]).execute()
 
 # --- 4. THE SIDEBAR ---
 with st.sidebar:
@@ -135,7 +157,29 @@ with st.sidebar:
     if st.button("➕ New Chat", use_container_width=True, type="primary"):
         st.session_state.messages = [{"role": "assistant", "content": "Canvas cleared. What are we building next?"}]
         st.rerun() 
+    st.divider()
+    
+    # --- FETCH & DISPLAY PAST CHATS ---
+    st.markdown("### 🕰️ Past Chats")
+    try:
+        # Fetch the last 5 conversations from Supabase
+        past_chats = supabase.table("conversations").select("id, title").eq("user_email", st.session_state["user"]["email"]).order("created_at", desc=True).limit(5).execute()
         
+        if past_chats.data:
+            for chat in past_chats.data:
+                # If they click an old chat, load it from the database into memory!
+                if st.button(f"💬 {chat['title']}", key=chat["id"], use_container_width=True):
+                    full_chat = supabase.table("conversations").select("messages").eq("id", chat["id"]).execute()
+                    if full_chat.data:
+                        st.session_state.messages = full_chat.data[0]["messages"]
+                        st.session_state["current_chat_id"] = chat["id"]
+                        st.rerun()
+        else:
+            st.caption("No past chats yet.")
+    except Exception as e:
+        st.caption("Could not load past chats.")
+        
+    st.divider()    
     st.divider()
     st.markdown("### ⚙️ Generation Settings")
     engine = st.radio("Select AI Engine:", ["💬 Chat Assistant", "📸 Image (Fast)", "🎬 Video (Cinematic)"])
@@ -177,7 +221,7 @@ if prompt := st.chat_input("Message PromoVeo (e.g., 'Write a script for my ad...
                 except Exception as e:
                     st.error(f"Chat API Error: {e}")
                     st.session_state.messages.append({"role": "assistant", "content": f"Error: {e}"})
-
+                    save_chat_to_cloud(prompt)
         # --- ENGINE 2: IMAGE ---
         elif engine == "📸 Image (Fast)":
             if st.session_state["user"]["image_credits"] <= 0:
@@ -198,6 +242,7 @@ if prompt := st.chat_input("Message PromoVeo (e.g., 'Write a script for my ad...
                                 st.session_state.messages.append({"role": "assistant", "content": "Here is your generated image!", "image": img_bytes})
                                 
                         # Deduct Credit on Success!
+                        save_chat_to_cloud(prompt)
                         new_balance = st.session_state["user"]["image_credits"] - 1
                         supabase.table("users").update({"image_credits": new_balance}).eq("email", st.session_state["user"]["email"]).execute()
                         st.session_state["user"]["image_credits"] = new_balance
@@ -255,6 +300,7 @@ if prompt := st.chat_input("Message PromoVeo (e.g., 'Write a script for my ad...
                                 st.session_state.messages.append({"role": "assistant", "content": "Here is your video ad!", "video": output_path})
 
                                 # Deduct Credit on Success!
+                                save_chat_to_cloud(prompt)
                                 new_balance = st.session_state["user"]["video_credits"] - 1
                                 supabase.table("users").update({"video_credits": new_balance}).eq("email", st.session_state["user"]["email"]).execute()
                                 st.session_state["user"]["video_credits"] = new_balance
