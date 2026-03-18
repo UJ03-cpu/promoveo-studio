@@ -77,15 +77,16 @@ if st.sidebar.button("🚪 Log Out", use_container_width=True):
     st.rerun() # Refresh to lock the app
 
 # --- NEW: SAVE CHAT BUTTON ---
-# Converts the current chat memory into a downloadable text file
-chat_text = "\n\n".join([f"{msg['role'].upper()}:\n{msg['content']}" for msg in st.session_state.messages if "content" in msg])
-st.sidebar.download_button(
-    label="💾 Download Chat History",
-    data=chat_text,
-    file_name="promoveo_chat_history.txt",
-    mime="text/plain",
-    use_container_width=True
-)
+# We wrap this in an 'if' statement so it doesn't crash on a hard refresh!
+if "messages" in st.session_state:
+    chat_text = "\n\n".join([f"{msg['role'].upper()}:\n{msg['content']}" for msg in st.session_state.messages if "content" in msg])
+    st.sidebar.download_button(
+        label="💾 Download Chat History",
+        data=chat_text,
+        file_name="promoveo_chat_history.txt",
+        mime="text/plain",
+        use_container_width=True
+    )
 st.sidebar.markdown("---")
 
 # Setup Google AI
