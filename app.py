@@ -5,6 +5,7 @@ import time
 from google import genai
 from google.genai import types
 from supabase import create_client, Client
+import uuid
 
 # --- 1. SETTINGS & AUTHENTICATION ---
 st.set_page_config(page_title="PromoVeo | Studio", page_icon="💬", layout="wide")
@@ -130,13 +131,18 @@ if "messages" not in st.session_state:
 if "current_chat_id" not in st.session_state:
     st.session_state["current_chat_id"] = None
 
-# HELPER FUNCTION: Safely strip massive files before saving to cloud
+# HELPER FUNCTION: Safely save cloud URLs to the database
 def get_clean_messages_for_db():
     clean_msgs = []
     for msg in st.session_state.messages:
-        clean_msgs.append({"role": msg["role"], "content": msg["content"]})
+        clean_msg = {"role": msg["role"], "content": msg["content"]}
+        # If there is a cloud link, save it!
+        if "image_url" in msg:
+            clean_msg["image_url"] = msg["image_url"]
+        if "video_url" in msg:
+            clean_msg["video_url"] = msg["video_url"]
+        clean_msgs.append(clean_msg)
     return clean_msgs
-
 # HELPER FUNCTION: Save current chat to Supabase
 def save_chat_to_cloud(user_prompt):
     if st.session_state["current_chat_id"] is None:
@@ -190,16 +196,16 @@ with st.sidebar:
 for i, msg in enumerate(st.session_state.messages):
     with st.chat_message(msg["role"]):
         st.markdown(msg["content"])
-        if "image" in msg:
-            st.image(msg["image"])
-            st.download_button(label="⬇️ Download Image", data=msg["image"], file_name=f"promoveo_image_{i}.png", mime="image/png", key=f"dl_img_{i}")
-        if "video" in msg:
-            st.video(msg["video"])
-            try:
-                with open(msg["video"], "rb") as file:
-                    st.download_button(label="⬇️ Download Video", data=file, file_name=f"promoveo_video_{i}.mp4", mime="video/mp4", key=f"dl_vid_{i}")
-            except Exception:
-                pass
+        
+        # Draw Image from Cloud
+        if "image_url" in msg:
+            st.image(msg["image_url"])
+            st.markdown(f"[⬇️ Download Image (Right-Click & Save)]({msg['image_url']})")
+            
+        # Draw Video from Cloud
+        if "video_url" in msg:
+            st.video(msg["video_url"])
+            st.markdown(f"[⬇️ Open Video to Download]({msg['video_url']})")
 
 # --- 6. THE CHAT INPUT BAR ---
 if prompt := st.chat_input("Message PromoVeo (e.g., 'Write a script for my ad...'):"):
@@ -240,7 +246,18 @@ if prompt := st.chat_input("Message PromoVeo (e.g., 'Write a script for my ad...
                             if part.inline_data:
                                 img_bytes = part.inline_data.data
                                 st.image(img_bytes, use_container_width=True)
-                                st.session_state.messages.append({"role": "assistant", "content": "Here is your generated image!", "image": img_bytes})
+                                img_bytes = part.inline_data.data
+                                
+                                # --- UPLOAD TO SUPABASE CLOUD ---
+                                file_name = f"image_{uuid.uuid4().hex}.png"
+                                supabase.storage.from_("promoveo_assets").upload(file=img_bytes, path=file_name, file_options={"content-type": "image/png"})
+                                public_url = supabase.storage.from_("promoveo_assets").get_public_url(file_name)
+                                
+                                # Save URL to memory and display
+                                st.session_state.messages.append({"role": "assistant", "content": "Here is your generated image!", "image_url": public_url})
+                                st.image(public_url, use_container_width=True)
+                                
+                        save_chat_to_cloud(prompt) # SAVE TO DATABASE
                                 
                         # Deduct Credit on Success!
                         save_chat_to_cloud(prompt)
@@ -298,8 +315,19 @@ if prompt := st.chat_input("Message PromoVeo (e.g., 'Write a script for my ad...
                                 urllib.request.urlretrieve(download_url, output_path)
 
                                 st.video(output_path)
-                                st.session_state.messages.append({"role": "assistant", "content": "Here is your video ad!", "video": output_path})
+                                urllib.request.urlretrieve(download_url, output_path)
 
+                                # --- UPLOAD TO SUPABASE CLOUD ---
+                                file_name = f"video_{uuid.uuid4().hex}.mp4"
+                                with open(output_path, "rb") as f:
+                                    supabase.storage.from_("promoveo_assets").upload(file=f, path=file_name, file_options={"content-type": "video/mp4"})
+                                public_url = supabase.storage.from_("promoveo_assets").get_public_url(file_name)
+
+                                # Save URL to memory and display
+                                st.session_state.messages.append({"role": "assistant", "content": "Here is your video ad!", "video_url": public_url})
+                                st.video(public_url)
+
+                                save_chat_to_cloud(prompt) # SAVE TO DATABASE
                                 # Deduct Credit on Success!
                                 save_chat_to_cloud(prompt)
                                 new_balance = st.session_state["user"]["video_credits"] - 1
